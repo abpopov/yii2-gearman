@@ -11,19 +11,23 @@ use Sinergi\Gearman\Process;
 class GearmanComponent extends \yii\base\Component
 {
     public $servers;
-    
+
     public $user;
-    
+
+    public $num_of_workers;
+
+    public  $workerLifetime = 0;
+
     public $jobs = [];
-    
+
     private $_application;
-    
+
     private $_dispatcher;
-    
+
     private $_config;
-    
+
     private $_process;
-    
+
     public function getApplication()
     {
         if($this->_application === null) {
@@ -33,27 +37,39 @@ class GearmanComponent extends \yii\base\Component
                 if(!($job instanceof JobInterface)) {
                     throw new \yii\base\InvalidConfigException('Gearman job must be instance of JobInterface.');
                 }
-                
+
                 $job->setName($name);
-                $app->add($job);
+
+                if($this->num_of_workers[$name]===null){
+                    $app->add($job);
+                }else{
+
+                    for($i=0;$i<$this->num_of_workers[$name];$i++){
+
+                        $app->add($job);
+
+                    }
+
+                }
             }
             $this->_application = $app;
         }
-        
+
         return $this->_application;
     }
-    
+
     public function getDispatcher()
     {
         if($this->_dispatcher === null) {
             $this->_dispatcher = new Dispatcher($this->getConfig());
         }
-        
+
         return $this->_dispatcher;
     }
-    
+
     public function getConfig()
     {
+
         if($this->_config === null) {
             $servers = [];
             foreach($this->servers as $server) {
@@ -66,19 +82,20 @@ class GearmanComponent extends \yii\base\Component
 
             $this->_config = new Config([
                 'servers' => $servers,
-                'user' => $this->user
+                'user' => $this->user,
+                'workerLifetime' =>$this->workerLifetime,
             ]);
         }
-        
+
         return $this->_config;
     }
-    
+
     public function setConfig(Config $config)
     {
         $this->_config = $config;
         return $this;
     }
-    
+
     /**
      * @return Process
      */
@@ -89,7 +106,7 @@ class GearmanComponent extends \yii\base\Component
         }
         return $this->_process;
     }
-    
+
     /**
      * @param Process $process
      * @return $this
