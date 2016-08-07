@@ -19,29 +19,62 @@ class GearmanController extends Controller
     
     public function actionStart()
     {
-        $app = $this->getApplication();
-        $process = $app->getProcess();
-        
-        if ($process->isRunning()) {
-            $this->stdout("Failed: Process is already running\n", Console::FG_RED);
-            return;
+        $appArray = $this->getApplication();
+
+        if (count($appArray)>0){
+
+
+            foreach ($appArray as $app){
+
+
+                $process = $app->getProcess();
+
+                if ($process->isRunning()) {
+                    $this->stdout("Failed: Process is already running\n", Console::FG_RED);
+
+                }else{
+                    $this->runApplication($app);
+                }
+
+
+
+
+            }
+
         }
-        
-        $this->runApplication($app);
+
     }
     
     public function actionStop()
     {
-        $app = $this->getApplication();
-        $process = $app->getProcess();
-        
-        if ($process->isRunning()) {
-            $this->stdout("Success: Process is stopped\n", Console::FG_GREEN);
-        } else {
-            $this->stdout("Failed: Process is not stopped\n", Console::FG_RED);
+
+        $appArray = $this->getApplication();
+
+        if (count($appArray)>0){
+
+
+            foreach ($appArray as $app){
+
+
+                $process = $app->getProcess();
+
+                if ($process->isRunning()) {
+                    $this->stdout("Success: Process is stopped\n", Console::FG_GREEN);
+                } else {
+                    $this->stdout("Failed: Process is not stopped\n", Console::FG_RED);
+                }
+
+                $process->stop();
+
+
+
+
+            }
+
         }
         
-        $process->stop();
+        
+
     }
     
     public function actionRestart()

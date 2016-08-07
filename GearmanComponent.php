@@ -20,42 +20,71 @@ class GearmanComponent extends \yii\base\Component
 
     public $jobs = [];
 
-    private $_application;
+    private $_application=array();
 
     private $_dispatcher;
 
     private $_config;
 
-    private $_process;
+    private $_process = array();
 
-    public function getApplication()
-    {
-        if($this->_application === null) {
-            $app = new Application($this->getConfig(), $this->getProcess());
-            foreach($this->jobs as $name => $job) {
+
+    public function createApp(){
+
+        $process_id =0;
+        foreach($this->jobs as $name => $job) {
+
+
+            if($this->num_of_workers[$name]===null){
+                $num_of_workers = 1;
+            }
+            else{
+
+                $num_of_workers = $this->num_of_workers[$name];
+            }
+
+
+
+
+
+            for($i=0;$i<$num_of_workers;$i++){
+
+                $process_id++;
+                $app = new Application($this->getConfig(), $this->getProcess($process_id));
+
                 $job = Yii::createObject($job);
                 if(!($job instanceof JobInterface)) {
                     throw new \yii\base\InvalidConfigException('Gearman job must be instance of JobInterface.');
                 }
 
                 $job->setName($name);
+                $app->add($job);
+                $this->_application[] = $app;
 
-                if($this->num_of_workers[$name]===null){
-                    $app->add($job);
-                }else{
 
-                    for($i=0;$i<$this->num_of_workers[$name];$i++){
 
-                        $app->add($job);
-
-                    }
-
-                }
             }
-            $this->_application = $app;
+
+
+
+            $process_id++;
+        }
+
+    }
+    public function getApplication()
+    {
+
+
+
+        if (count($this->_application)==0){
+
+            $this->createApp();
         }
 
         return $this->_application;
+
+
+
     }
 
     public function getDispatcher()
@@ -99,12 +128,13 @@ class GearmanComponent extends \yii\base\Component
     /**
      * @return Process
      */
-    public function getProcess()
+    public function getProcess($process_id=0)
     {
-        if ($this->_process === null) {
-            $this->setProcess((new Process($this->getConfig())));
-        }
-        return $this->_process;
+
+
+
+
+        return new Process($this->getConfig(),null,$process_id);
     }
 
     /**
