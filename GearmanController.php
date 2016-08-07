@@ -15,6 +15,7 @@ class GearmanController extends Controller
      */
     public $fork = false;
     public $worker_class="0";
+    public $pid;
     
     public $gearmanComponent = 'gearman';
     
@@ -24,11 +25,15 @@ class GearmanController extends Controller
         $process = $app->getProcess();
         
         if ($process->isRunning()) {
-            $this->stdout("Failed: Process is already running\n", Console::FG_RED);
-            return;
+            
+            $this->stdout("Failed: Process is already running\nTry new pid\n", Console::FG_RED);
+           
+            
+            
+        }else {
+
+            $this->runApplication($app);
         }
-        
-        $this->runApplication($app);
     }
     
     public function actionStop()
@@ -80,7 +85,7 @@ class GearmanController extends Controller
     {
         $options = [];
         if(in_array($id, ['start', 'restart'])) {
-            $options = ['fork','worker_class'];
+            $options = ['fork','worker_class','pid'];
         }
         
         return array_merge(parent::options($id), $options);
@@ -89,7 +94,7 @@ class GearmanController extends Controller
     protected function getApplication()
     {
         $component = Yii::$app->get($this->gearmanComponent);
-        return $component->getApplication($this->worker_class);
+        return $component->getApplication($this->worker_class,$this->pid);
     }
     
     protected function runApplication(Application $app)

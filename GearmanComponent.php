@@ -28,10 +28,15 @@ class GearmanComponent extends \yii\base\Component
 
     private $_process;
 
-    public function getApplication($worker_class)
+    public function getApplication($worker_class,$pid)
     {
         if($this->_application === null) {
-            $app = new Application($this->getConfig(), $this->getProcess($worker_class));
+
+            $process_id = $worker_class;
+            if ($pid){
+                $process_id = $worker_class.$pid;
+            }
+            $app = new Application($this->getConfig(), $this->getProcess($process_id));
             foreach($this->jobs as $name => $job) {
                 $job = Yii::createObject($job);
                 if(!($job instanceof JobInterface)) {
