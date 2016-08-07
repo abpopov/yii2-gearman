@@ -23,5 +23,13 @@
         "psr-4": {
             "filsh\\yii2\\gearman\\": ""
         }
-    }
+    },
+    "repositories": [
+
+        {
+            "type": "vcs",
+            "url": "https://github.com/abpopov/gearman.git"
+        }
+
+    ]
 }
