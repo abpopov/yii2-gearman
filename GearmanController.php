@@ -14,6 +14,7 @@ class GearmanController extends Controller
      * @var boolean whether to run the forked process.
      */
     public $fork = false;
+    public $worker_class="0";
     
     public $gearmanComponent = 'gearman';
     
@@ -79,7 +80,7 @@ class GearmanController extends Controller
     {
         $options = [];
         if(in_array($id, ['start', 'restart'])) {
-            $options = ['fork'];
+            $options = ['fork','worker_class'];
         }
         
         return array_merge(parent::options($id), $options);
@@ -88,7 +89,7 @@ class GearmanController extends Controller
     protected function getApplication()
     {
         $component = Yii::$app->get($this->gearmanComponent);
-        return $component->getApplication();
+        return $component->getApplication($this->worker_class);
     }
     
     protected function runApplication(Application $app)

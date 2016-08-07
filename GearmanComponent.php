@@ -28,17 +28,23 @@ class GearmanComponent extends \yii\base\Component
 
     private $_process;
 
-    public function getApplication()
+    public function getApplication($worker_class)
     {
         if($this->_application === null) {
-            $app = new Application($this->getConfig(), $this->getProcess());
+            $app = new Application($this->getConfig(), $this->getProcess($worker_class));
             foreach($this->jobs as $name => $job) {
                 $job = Yii::createObject($job);
                 if(!($job instanceof JobInterface)) {
                     throw new \yii\base\InvalidConfigException('Gearman job must be instance of JobInterface.');
                 }
 
-                $job->setName($name);
+
+                if ($name == $worker_class){
+                    $job->setName($name);
+                    $app->add($job);
+                }
+/*
+
 
                 if($this->num_of_workers[$name]===null){
                     $app->add($job);
@@ -50,7 +56,7 @@ class GearmanComponent extends \yii\base\Component
 
                     }
 
-                }
+                }*/
             }
             $this->_application = $app;
         }
@@ -99,10 +105,10 @@ class GearmanComponent extends \yii\base\Component
     /**
      * @return Process
      */
-    public function getProcess()
+    public function getProcess($worker_class)
     {
         if ($this->_process === null) {
-            $this->setProcess((new Process($this->getConfig())));
+            $this->setProcess((new Process($this->getConfig(),null,$worker_class)));
         }
         return $this->_process;
     }
